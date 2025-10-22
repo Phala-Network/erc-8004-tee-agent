@@ -323,6 +323,108 @@ JSON format:
     "parameters": {{ ... }}
 }}"""
 
+    async def generate_browser_workflow(
+        self,
+        task_description: str,
+        include_attestation: bool = True
+    ) -> Tuple[Dict[str, Any], Optional[Dict[str, Any]]]:
+        """
+        Generate multi-step browser workflow from natural language with TEE attestation.
+
+        Returns:
+            (workflow_dict, attestation_data) tuple where workflow_dict contains:
+            - workflow_id: str
+            - name: str
+            - description: str
+            - steps: List[dict] with step_number, description, tool, parameters
+        """
+        prompt = self._build_browser_workflow_prompt(task_description)
+        workflow_json, attestation = await self._call_ai(prompt, include_attestation)
+
+        try:
+            # Extract JSON from response (handle cases where AI adds extra text)
+            workflow_json = self._extract_json_array(workflow_json)
+
+            # Parse the JSON response
+            steps_data = json.loads(workflow_json)
+
+            if not isinstance(steps_data, list):
+                raise ValueError("Expected array of steps")
+
+            # Build workflow dict
+            workflow_dict = {
+                "workflow_id": f"workflow-{secrets.token_hex(8)}",
+                "name": task_description[:100],
+                "description": task_description,
+                "steps": steps_data,
+                "variables": {},
+                "created_by": "ai",
+                "attestation_mode": "aggregate"
+            }
+
+            return workflow_dict, attestation
+
+        except (json.JSONDecodeError, ValueError) as e:
+            raise Exception(f"Failed to parse browser workflow JSON: {str(e)}\nGenerated: {workflow_json}")
+
+    def _extract_json_array(self, text: str) -> str:
+        """Extract JSON array from text that may contain extra content"""
+        text = text.strip()
+
+        # Find the first [ and last ]
+        start = text.find('[')
+        end = text.rfind(']')
+
+        if start != -1 and end != -1 and end > start:
+            return text[start:end+1]
+
+        # Fallback to object extraction
+        return self._extract_json(text)
+
+    def _build_browser_workflow_prompt(self, task: str) -> str:
+        """Build optimized prompt for browser workflow generation"""
+        return f"""Task: {task}
+
+Generate a browser automation workflow as a JSON array of steps.
+
+Available browser tools:
+- mcp__sandbox__browser_navigate: Navigate to URL
+  Parameters: {{"url": "string"}}
+
+- mcp__sandbox__browser_form_input_fill: Fill form input field
+  Parameters: {{"index": number, "value": "string", "clear": boolean (optional)}}
+
+- mcp__sandbox__browser_click: Click element by index
+  Parameters: {{"index": number}}
+
+- mcp__sandbox__browser_wait_for: Wait for text to appear
+  Parameters: {{"text": "string"}}
+
+- mcp__sandbox__browser_screenshot: Take screenshot
+  Parameters: {{}}
+
+- mcp__sandbox__browser_get_clickable_elements: Get list of clickable elements
+  Parameters: {{}}
+
+- mcp__sandbox__browser_get_markdown: Get page content as markdown
+  Parameters: {{}}
+
+CRITICAL: Your response must be ONLY a valid JSON array. No text before or after.
+Each step must have:
+- step_number: Sequential number (1, 2, 3, ...)
+- description: Human-readable description
+- tool: MCP tool name (mcp__sandbox__browser_*)
+- parameters: Object with tool parameters
+
+Example format:
+[
+  {{"step_number": 1, "description": "Navigate to login page", "tool": "mcp__sandbox__browser_navigate", "parameters": {{"url": "https://github.com/login"}}}},
+  {{"step_number": 2, "description": "Get clickable elements", "tool": "mcp__sandbox__browser_get_clickable_elements", "parameters": {{}}}},
+  {{"step_number": 3, "description": "Fill username field", "tool": "mcp__sandbox__browser_form_input_fill", "parameters": {{"index": 0, "value": "user@example.com"}}}}
+]
+
+Be specific and thorough. Include all necessary steps."""
+
 
 async def verify_ai_attestation(attestation_data: Dict[str, Any]) -> bool:
     """

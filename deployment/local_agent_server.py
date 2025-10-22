@@ -402,6 +402,126 @@ async def process_task(request: TaskRequest):
         raise HTTPException(status_code=500, detail=f"Task processing failed: {str(e)}")
 
 
+@app.post("/api/browser/generate-workflow")
+async def generate_browser_workflow(request: Dict[str, Any]):
+    """
+    Generate a browser automation workflow from natural language description.
+
+    Request body:
+    {
+        "description": "Login to GitHub and create a repository",
+        "include_attestation": true
+    }
+    """
+    if not agent or not agent.ai_generator:
+        raise HTTPException(
+            status_code=503,
+            detail="AI generator not available. Set REDPILL_API_KEY environment variable."
+        )
+
+    try:
+        description = request.get("description")
+        if not description:
+            raise HTTPException(status_code=400, detail="Description is required")
+
+        include_attestation = request.get("include_attestation", True)
+
+        # Generate workflow using AI
+        workflow_dict, attestation = await agent.ai_generator.generate_browser_workflow(
+            description,
+            include_attestation
+        )
+
+        return {
+            "success": True,
+            "workflow": workflow_dict,
+            "attestation": attestation if include_attestation else None
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Workflow generation failed: {str(e)}")
+
+
+@app.post("/api/browser/execute-workflow")
+async def execute_browser_workflow(request: Dict[str, Any]):
+    """
+    Execute a browser automation workflow.
+
+    Request body:
+    {
+        "workflow": {...workflow object...}
+    }
+    """
+    if not agent:
+        raise HTTPException(status_code=503, detail="Agent not initialized")
+
+    try:
+        workflow_data = request.get("workflow")
+        if not workflow_data:
+            raise HTTPException(status_code=400, detail="Workflow is required")
+
+        # Import workflow types
+        from src.agent.workflow_types import Workflow, WorkflowStep
+        from src.agent.workflow_executor import WorkflowExecutor
+
+        # Convert dict to Workflow object
+        steps = [
+            WorkflowStep(
+                step_id=f"step-{s['step_number']}",
+                step_number=s['step_number'],
+                description=s['description'],
+                tool=s['tool'],
+                parameters=s['parameters'],
+                timeout=s.get('timeout', 30)
+            )
+            for s in workflow_data['steps']
+        ]
+
+        workflow = Workflow(
+            workflow_id=workflow_data['workflow_id'],
+            name=workflow_data['name'],
+            description=workflow_data['description'],
+            steps=steps,
+            variables=workflow_data.get('variables', {}),
+            created_by=workflow_data.get('created_by', 'user'),
+            attestation_mode=workflow_data.get('attestation_mode', 'aggregate')
+        )
+
+        # Execute workflow
+        executor = WorkflowExecutor(agent)
+        result = await executor.execute_workflow(workflow)
+
+        # Convert result to dict for JSON response
+        return {
+            "success": result.success,
+            "workflow_id": result.workflow_id,
+            "execution_id": result.execution_id,
+            "completed_steps": result.completed_steps,
+            "total_steps": len(workflow.steps),
+            "failed_step": result.failed_step,
+            "error_message": result.error_message,
+            "total_duration_seconds": result.total_duration_seconds,
+            "steps": [
+                {
+                    "step_id": s.step_id,
+                    "step_number": s.step_number,
+                    "success": s.success,
+                    "result": s.result,
+                    "error": s.error,
+                    "retries_used": s.retries_used,
+                    "duration_seconds": s.duration_seconds
+                }
+                for s in result.steps
+            ]
+        }
+
+    except Exception as e:
+        import traceback
+        print(f"Workflow execution error: {str(e)}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Workflow execution failed: {str(e)}")
+
+
 @app.get("/api/card")
 async def get_agent_card():
     """Get ERC-8004 compliant agent card."""

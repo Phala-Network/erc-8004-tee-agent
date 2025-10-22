@@ -200,6 +200,52 @@
                         🔧 Generate & Execute MCP Call
                     </button>
                 </div>
+
+                <!-- Browser Workflows (NEW) -->
+                <div class="bg-gradient-to-br from-indigo-900 to-gray-800 rounded-lg p-6 border border-indigo-700">
+                    <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                        <span class="bg-indigo-600 px-2 py-1 rounded text-xs">WORKFLOW</span>
+                        Browser Automation (AI)
+                    </h3>
+                    <p class="text-sm text-gray-400 mb-4">Generate multi-step browser workflows from natural language (with TEE attestation)</p>
+
+                    <!-- Quick Actions -->
+                    <div class="flex gap-3 mb-3 text-sm">
+                        <button onclick="workflowManager.showExamples()" class="text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                            📚 Examples
+                        </button>
+                        <span class="text-gray-600">•</span>
+                        <button onclick="showWorkflowHelp()" class="text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                            ❓ Help
+                        </button>
+                    </div>
+
+                    <!-- Natural Language Input -->
+                    <textarea
+                        id="workflowDescription"
+                        placeholder="Describe the browser automation task... (e.g., 'Navigate to GitHub and take a screenshot' or 'Search for Node.js on npmjs.com')"
+                        class="w-full bg-gray-700 text-white p-3 rounded mb-2 h-32"
+                    ></textarea>
+
+                    <!-- Advanced Options (Collapsible) -->
+                    <details class="mb-3">
+                        <summary class="text-sm text-indigo-400 cursor-pointer mb-2">Advanced Options</summary>
+                        <div class="bg-gray-700 p-3 rounded space-y-2">
+                            <label class="flex items-center gap-2 text-sm">
+                                <input type="checkbox" id="workflowAttestation" checked class="rounded">
+                                Include TEE Attestation
+                            </label>
+                            <label class="flex items-center gap-2 text-sm">
+                                <input type="checkbox" id="workflowAutoExecute" class="rounded">
+                                Auto-Execute After Generation
+                            </label>
+                        </div>
+                    </details>
+
+                    <button onclick="generateWorkflow()" class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded w-full font-bold">
+                        🤖 Generate Workflow
+                    </button>
+                </div>
             </div>
 
             <!-- Right Column - Response -->
@@ -336,6 +382,95 @@
             <div id="toolDetailPanel" class="hidden border-t border-gray-700 p-6 overflow-y-auto max-h-96">
                 <!-- Tool details will be rendered here -->
             </div>
+        </div>
+    </div>
+
+    <!-- Workflow Preview Modal -->
+    <div id="workflowPreviewModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-6 border-b border-gray-700">
+                <div>
+                    <h2 class="text-2xl font-bold">Workflow Preview</h2>
+                    <p class="text-sm text-gray-400 mt-1" id="workflowName">Review and execute workflow</p>
+                </div>
+                <button onclick="workflowManager.closePreview()" class="text-gray-400 hover:text-white text-3xl leading-none">
+                    ×
+                </button>
+            </div>
+
+            <!-- Workflow Info -->
+            <div class="p-6 border-b border-gray-700">
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-400">Workflow ID:</span>
+                        <code class="text-indigo-400 ml-2" id="workflowId">-</code>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Steps:</span>
+                        <span class="text-white ml-2" id="workflowStepCount">-</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-gray-400">Description:</span>
+                        <p class="text-white mt-1" id="workflowFullDescription">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Steps List -->
+            <div id="workflowStepsList" class="flex-1 overflow-y-auto p-6">
+                <!-- Steps will be rendered here -->
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="p-6 border-t border-gray-700 flex gap-3">
+                <button onclick="workflowManager.executeWorkflow()"
+                        class="bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded font-bold flex-1">
+                    ▶ Execute Workflow
+                </button>
+                <button onclick="workflowManager.closePreview()"
+                        class="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Execution Monitor Panel -->
+    <div id="executionMonitor" class="hidden fixed bottom-6 right-6 bg-gray-800 border border-indigo-600 rounded-lg shadow-2xl w-96 max-h-[500px] overflow-hidden flex flex-col z-40">
+        <!-- Monitor Header -->
+        <div class="flex items-center justify-between p-4 border-b border-gray-700 bg-indigo-900">
+            <div>
+                <h3 class="font-bold text-sm">Workflow Execution</h3>
+                <p class="text-xs text-gray-400" id="monitorStatus">Initializing...</p>
+            </div>
+            <button onclick="workflowManager.closeMonitor()" class="text-gray-400 hover:text-white text-xl leading-none">
+                ×
+            </button>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="p-4 border-b border-gray-700">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs text-gray-400" id="monitorProgress">0 / 0 steps</span>
+                <span class="text-xs text-gray-400" id="monitorDuration">0s</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-2">
+                <div id="monitorProgressBar" class="bg-indigo-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Steps Log -->
+        <div id="monitorSteps" class="flex-1 overflow-y-auto p-4 space-y-2">
+            <!-- Steps will be rendered here -->
+        </div>
+
+        <!-- Footer Actions -->
+        <div id="monitorFooter" class="p-4 border-t border-gray-700 hidden">
+            <button onclick="workflowManager.closeMonitor()"
+                    class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded w-full text-sm">
+                Close
+            </button>
         </div>
     </div>
 
@@ -709,6 +844,56 @@
         // Helper function for showing MCP help
         function showMCPHelp() {
             UIUtils.showToast('Press Cmd/Ctrl+K to open tool browser', 'info');
+        }
+
+        // Helper function for showing workflow help
+        function showWorkflowHelp() {
+            UIUtils.showToast('Describe multi-step browser tasks in natural language', 'info');
+        }
+
+        // Browser Workflow Functions
+        async function generateWorkflow() {
+            const description = document.getElementById('workflowDescription').value.trim();
+            const includeAttestation = document.getElementById('workflowAttestation').checked;
+            const autoExecute = document.getElementById('workflowAutoExecute').checked;
+
+            if (!description) {
+                UIUtils.showToast('Please describe the browser automation task', 'warning');
+                return;
+            }
+
+            UIUtils.showToast('Generating workflow with AI...', 'info');
+
+            try {
+                const response = await fetch('/api/browser/generate-workflow', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        description: description,
+                        include_attestation: includeAttestation
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    UIUtils.showToast('Workflow generated successfully!', 'success');
+
+                    // Show workflow preview
+                    workflowManager.showPreview(result.workflow, result.attestation);
+
+                    // Auto-execute if enabled
+                    if (autoExecute) {
+                        setTimeout(() => workflowManager.executeWorkflow(), 1000);
+                    }
+                } else {
+                    UIUtils.showToast('Failed to generate workflow: ' + (result.error || 'Unknown error'), 'error');
+                    displayResponse(result, false);
+                }
+            } catch (error) {
+                UIUtils.showToast('Error: ' + error.message, 'error');
+                displayResponse({ error: error.message }, false);
+            }
         }
 
         // Static MCP Tool Catalog
@@ -1254,6 +1439,197 @@
 
         // Initialize tool browser
         const toolBrowser = new MCPToolBrowser();
+
+        // Workflow Manager Class
+        class WorkflowManager {
+            constructor() {
+                this.currentWorkflow = null;
+                this.currentAttestation = null;
+                this.executionStartTime = null;
+                this.executionInterval = null;
+            }
+
+            showPreview(workflow, attestation = null) {
+                this.currentWorkflow = workflow;
+                this.currentAttestation = attestation;
+
+                // Update modal content
+                document.getElementById('workflowName').textContent = workflow.name || 'Untitled Workflow';
+                document.getElementById('workflowId').textContent = workflow.workflow_id;
+                document.getElementById('workflowStepCount').textContent = workflow.steps.length;
+                document.getElementById('workflowFullDescription').textContent = workflow.description;
+
+                // Render steps
+                const stepsList = document.getElementById('workflowStepsList');
+                stepsList.innerHTML = `
+                    <div class="space-y-3">
+                        ${workflow.steps.map((step, i) => `
+                            <div class="bg-gray-700 p-4 rounded border-l-4 border-indigo-500">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="font-bold text-indigo-400">Step ${step.step_number}</span>
+                                    <code class="text-xs bg-gray-800 px-2 py-1 rounded">${step.tool.replace('mcp__sandbox__browser_', '')}</code>
+                                </div>
+                                <p class="text-sm text-gray-300 mb-2">${step.description}</p>
+                                <details class="text-xs">
+                                    <summary class="text-gray-400 cursor-pointer">Parameters</summary>
+                                    <pre class="bg-gray-800 p-2 rounded mt-2 overflow-x-auto">${JSON.stringify(step.parameters, null, 2)}</pre>
+                                </details>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                // Show modal
+                document.getElementById('workflowPreviewModal').classList.remove('hidden');
+            }
+
+            closePreview() {
+                document.getElementById('workflowPreviewModal').classList.add('hidden');
+            }
+
+            async executeWorkflow() {
+                if (!this.currentWorkflow) {
+                    UIUtils.showToast('No workflow to execute', 'error');
+                    return;
+                }
+
+                // Close preview modal
+                this.closePreview();
+
+                // Show execution monitor
+                this.showMonitor();
+
+                // Initialize monitor
+                this.executionStartTime = Date.now();
+                this.updateMonitor('Running workflow...', 0, this.currentWorkflow.steps.length);
+                this.startDurationTimer();
+
+                try {
+                    const response = await fetch('/api/browser/execute-workflow', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            workflow: this.currentWorkflow
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    this.stopDurationTimer();
+
+                    if (result.success) {
+                        this.updateMonitor('Workflow completed!', result.completed_steps, this.currentWorkflow.steps.length);
+                        this.renderExecutionResult(result);
+                        UIUtils.showToast('Workflow executed successfully!', 'success');
+
+                        // Show close button
+                        document.getElementById('monitorFooter').classList.remove('hidden');
+                    } else {
+                        this.updateMonitor('Workflow failed', result.completed_steps || 0, this.currentWorkflow.steps.length);
+                        this.renderExecutionResult(result);
+                        UIUtils.showToast('Workflow execution failed: ' + (result.error || 'Unknown error'), 'error');
+
+                        // Show close button
+                        document.getElementById('monitorFooter').classList.remove('hidden');
+                    }
+
+                    // Display result in response panel
+                    displayResponse(result, result.success);
+
+                } catch (error) {
+                    this.stopDurationTimer();
+                    this.updateMonitor('Error occurred', 0, this.currentWorkflow.steps.length);
+                    UIUtils.showToast('Execution error: ' + error.message, 'error');
+                    displayResponse({ error: error.message }, false);
+
+                    // Show close button
+                    document.getElementById('monitorFooter').classList.remove('hidden');
+                }
+            }
+
+            showMonitor() {
+                const monitor = document.getElementById('executionMonitor');
+                monitor.classList.remove('hidden');
+
+                // Clear previous steps
+                document.getElementById('monitorSteps').innerHTML = '';
+
+                // Hide footer initially
+                document.getElementById('monitorFooter').classList.add('hidden');
+            }
+
+            closeMonitor() {
+                document.getElementById('executionMonitor').classList.add('hidden');
+                this.stopDurationTimer();
+            }
+
+            updateMonitor(status, completedSteps, totalSteps) {
+                document.getElementById('monitorStatus').textContent = status;
+                document.getElementById('monitorProgress').textContent = `${completedSteps} / ${totalSteps} steps`;
+
+                const percentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
+                document.getElementById('monitorProgressBar').style.width = percentage + '%';
+            }
+
+            startDurationTimer() {
+                this.executionInterval = setInterval(() => {
+                    if (this.executionStartTime) {
+                        const elapsed = Math.floor((Date.now() - this.executionStartTime) / 1000);
+                        document.getElementById('monitorDuration').textContent = elapsed + 's';
+                    }
+                }, 1000);
+            }
+
+            stopDurationTimer() {
+                if (this.executionInterval) {
+                    clearInterval(this.executionInterval);
+                    this.executionInterval = null;
+                }
+            }
+
+            renderExecutionResult(result) {
+                const stepsContainer = document.getElementById('monitorSteps');
+
+                if (!result.steps || result.steps.length === 0) {
+                    stepsContainer.innerHTML = '<p class="text-gray-400 text-sm">No step details available</p>';
+                    return;
+                }
+
+                stepsContainer.innerHTML = result.steps.map(step => {
+                    const icon = step.success ? '✓' : '✗';
+                    const colorClass = step.success ? 'text-green-400' : 'text-red-400';
+                    const bgClass = step.success ? 'bg-green-900 bg-opacity-20' : 'bg-red-900 bg-opacity-20';
+
+                    return `
+                        <div class="text-sm ${bgClass} p-2 rounded">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="${colorClass} font-bold">${icon}</span>
+                                <span class="text-white">Step ${step.step_number}</span>
+                                <span class="text-gray-400 text-xs ml-auto">${step.duration_seconds?.toFixed(2)}s</span>
+                            </div>
+                            ${step.error ? `<p class="text-red-400 text-xs ml-6">${step.error}</p>` : ''}
+                            ${step.retries_used > 0 ? `<p class="text-yellow-400 text-xs ml-6">Retried ${step.retries_used} time(s)</p>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            showExamples() {
+                const examples = [
+                    'Navigate to GitHub and take a screenshot',
+                    'Search for "Node.js" on npmjs.com',
+                    'Go to example.com and get the page content',
+                    'Navigate to hacker news and screenshot the top stories'
+                ];
+
+                const example = examples[Math.floor(Math.random() * examples.length)];
+                document.getElementById('workflowDescription').value = example;
+                UIUtils.showToast('Example loaded! Click "Generate Workflow" to continue.', 'success');
+            }
+        }
+
+        // Initialize workflow manager
+        const workflowManager = new WorkflowManager();
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {

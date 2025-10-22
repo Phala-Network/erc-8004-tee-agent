@@ -402,6 +402,7 @@ class ServerAgent(BaseAgent):
         """
         # Map MCP tool names to sandbox endpoints
         tool_mapping = {
+            # File and shell operations
             'mcp__sandbox__exec_command': '/v1/shell/exec',
             'mcp__sandbox__read_file': '/v1/file/read',
             'mcp__sandbox__write_file': '/v1/file/write',
@@ -409,7 +410,32 @@ class ServerAgent(BaseAgent):
             'mcp__sandbox__find_files': '/v1/file/find',
             'mcp__sandbox__search_in_file': '/v1/file/search',
             'mcp__sandbox__execute_jupyter_code': '/v1/jupyter/execute',
-            'mcp__sandbox__execute_nodejs_code': '/v1/nodejs/execute'
+            'mcp__sandbox__execute_nodejs_code': '/v1/nodejs/execute',
+
+            # Browser automation tools
+            'mcp__sandbox__browser_navigate': '/v1/browser/navigate',
+            'mcp__sandbox__browser_go_back': '/v1/browser/go-back',
+            'mcp__sandbox__browser_go_forward': '/v1/browser/go-forward',
+            'mcp__sandbox__browser_form_input_fill': '/v1/browser/form-input-fill',
+            'mcp__sandbox__browser_get_markdown': '/v1/browser/get-markdown',
+            'mcp__sandbox__browser_get_text': '/v1/browser/get-text',
+            'mcp__sandbox__browser_read_links': '/v1/browser/read-links',
+            'mcp__sandbox__browser_new_tab': '/v1/browser/new-tab',
+            'mcp__sandbox__browser_tab_list': '/v1/browser/tab-list',
+            'mcp__sandbox__browser_switch_tab': '/v1/browser/switch-tab',
+            'mcp__sandbox__browser_close_tab': '/v1/browser/close-tab',
+            'mcp__sandbox__browser_evaluate': '/v1/browser/evaluate',
+            'mcp__sandbox__browser_vision_screen_capture': '/v1/browser/vision-screen-capture',
+            'mcp__sandbox__browser_vision_screen_click': '/v1/browser/vision-screen-click',
+            'mcp__sandbox__browser_get_download_list': '/v1/browser/get-download-list',
+            'mcp__sandbox__browser_screenshot': '/v1/browser/screenshot',
+            'mcp__sandbox__browser_click': '/v1/browser/click',
+            'mcp__sandbox__browser_select': '/v1/browser/select',
+            'mcp__sandbox__browser_hover': '/v1/browser/hover',
+            'mcp__sandbox__browser_get_clickable_elements': '/v1/browser/get-clickable-elements',
+            'mcp__sandbox__browser_scroll': '/v1/browser/scroll',
+            'mcp__sandbox__browser_close': '/v1/browser/close',
+            'mcp__sandbox__browser_press_key': '/v1/browser/press-key'
         }
 
         endpoint = tool_mapping.get(tool_name)
