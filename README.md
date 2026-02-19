@@ -169,6 +169,15 @@ Edit `agent_config.json` for agent metadata:
 | IdentityRegistry | `0x8004A818BFB912233c491871b3d84c89A494BD9e` |
 | ReputationRegistry | `0x8004B663056A597Dffe9eCcC1965A193B7388713` |
 
+### TRON (via M2M TRC-8004 Registry)
+
+| Contract | Address (Mainnet) | Address (Shasta) |
+|----------|-------------------|-------------------|
+| IdentityRegistry | `THmfi8uJuUpTfUmYLDX7UD1KaE4P6HKgqA` | `TFKNqk9bjwWp5uRiiGimqfLhVQB8jSxYi7` |
+| ReputationRegistry | `TV8KWmp8qcj55sjs1NSjVxmRmZP7CYzNxH` | `TRaYogyr2qc7WgsmuVF5Js39aCmoG7vZrA` |
+
+> TRON implementation by [M2M TRC-8004 Registry](https://m2mregistry.io). For TRON integration, use the [M2M Python SDK](https://github.com/M2M-TRC8004-Registry/trc8004-m2m-sdk).
+
 ## Tech Stack
 
 - **TEE**: Intel TDX via Phala Cloud / dstack
@@ -190,6 +199,7 @@ Edit `agent_config.json` for agent metadata:
 - [Phala Network](https://phala.network)
 - [The Graph Subgraph](https://thegraph.com/explorer/subgraph/6wQRC7geo9XYAhckfmfo8kbMRLeWU8KQd3XsJqFKmZLT)
 - [Sepolia Explorer](https://sepolia.etherscan.io)
+- [M2M TRC-8004 Registry](https://m2mregistry.io) - ERC-8004 on TRON
 
 ## License
 
