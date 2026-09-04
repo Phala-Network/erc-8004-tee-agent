@@ -242,7 +242,7 @@ Get new commit hash and update `GIT_COMMIT_HASH` in Phala Cloud, then redeploy.
 ### Need Help?
 
 - [GitHub Issues](https://github.com/Phala-Network/erc-8004-tee-agent/issues)
-- [Phala Discord](https://discord.gg/phala)
+- [Phala Discord](https://phala.com/discord)
 
 ---
 

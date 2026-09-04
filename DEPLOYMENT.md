@@ -295,7 +295,7 @@ If you encounter issues:
 4. **Search issues** - Check repository issues for similar problems
 5. **Ask for help**:
    - [GitHub Issues](https://github.com/YOUR_USERNAME/erc-8004-tee-agent/issues)
-   - [Phala Discord](https://discord.gg/phala)
+   - [Phala Discord](https://phala.com/discord)
 
 ---
 
