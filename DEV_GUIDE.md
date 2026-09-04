@@ -554,7 +554,7 @@ Access CVM logs on Phala dashboard to debug issues:
 
 - **Issues**: [GitHub Issues](https://github.com/YOUR_USERNAME/erc-8004-tee-agent/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/YOUR_USERNAME/erc-8004-tee-agent/discussions)
-- **Phala Discord**: [discord.gg/phala](https://discord.gg/phala)
+- **Phala Discord**: [discord.gg/phala](https://phala.com/discord)
 
 ---
 
